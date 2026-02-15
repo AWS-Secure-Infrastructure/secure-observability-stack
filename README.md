@@ -17,7 +17,9 @@ The stack is designed to reflect real-world cloud security and platform engineer
 
 ---
 
-## Architecture
+## Architecture Design
+
+![VPC Architecture](diagram.png)
 
 The stack follows a layered governance model:
 
