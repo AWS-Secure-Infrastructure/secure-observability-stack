@@ -1,91 +1,146 @@
-## AWS Logging & Observability Pipeline
-
-Designed and validated a centralized AWS logging and observability pipeline using CloudTrail, CloudWatch, AWS Config, GuardDuty and Athena. This project demonstrates how to collect, query and act on operational signals across an AWS environment using native services.
-
----
+# AWS Governance & Observability Stack (Terraform)
 
 ## Overview
 
-This project focuses on building centralized logging, monitoring and configuration visibility across AWS services. It covers API activity logging, configuration state tracking, metric-based alerting and log analysis using AWS-native tools.
+This repository implements a modular, production-oriented AWS governance and observability foundation using Terraform.
 
-The goal is to demonstrate how cloud environments can be made observable and auditable, enabling engineers to understand system behavior, detect anomalies and support troubleshooting and governance at scale.
+It provisions a secure, encrypted, and centralized logging architecture integrating:
 
----
+- CloudTrail (multi-region audit logging)
+- AWS Config (configuration governance)
+- GuardDuty (threat detection)
+- CloudWatch (metric-based alerting)
+- Athena + Glue (log analytics)
+- KMS-encrypted S3 storage with lifecycle management
 
-## What I Built
-
-- Multi-region CloudTrail setup capturing all AWS API activity.
-- Centralized log storage in Amazon S3.
-- AWS Config recording resource configuration changes and compliance state.
-- CloudWatch metric filters and alarms for key operational events.
-- Athena-based querying of CloudTrail logs for analysis and investigation.
-- End-to-end resource lifecycle cleanup after validation.
+The stack is designed to reflect real-world cloud security and platform engineering practices rather than lab-style experimentation.
 
 ---
 
-## Diagram
+## Architecture
 
-![AWS Security Lab Architecture](diagram.png)
+The stack follows a layered governance model:
 
----
+### Audit Layer
+- Multi-region CloudTrail
+- Log file validation enabled
+- Encrypted log delivery to S3
 
-## Implementation Highlights
+### Storage & Retention Layer
+- Dedicated S3 logging bucket
+- SSE-KMS encryption
+- Versioning enabled
+- Public access blocked
+- Lifecycle policy (Glacier transition + expiration)
 
-- Enabled multi-region CloudTrail to capture all management events.
-- Delivered CloudTrail logs to a dedicated S3 bucket.
-- Enabled AWS Config to record supported resource types.
-- Applied managed AWS Config rules to observe configuration drift.
-- Created CloudWatch metric filters and alarms based on CloudTrail events.
-- Queried CloudTrail logs using Athena for API activity analysis.
-- Removed all logging, monitoring and storage resources after validation.
-   
----
+### Governance Layer
+- AWS Config configuration recorder
+- Managed compliance rule (e.g. root MFA enforcement)
 
-## Screenshots
+### Detection Layer
+- GuardDuty detector enabled
+- S3 data event monitoring
 
-Selected screenshots are included in the `screenshots/` directory to validate configuration and data flow.
+### Alerting Layer
+- CloudWatch Log Group with defined retention
+- Metric filter for security-sensitive events
+- SNS-based alerting
+- Root login without MFA alarm
 
----
-
-## JSONs Table
-
-Sample JSON files are included in the `/sample_jsons/` directory for reference.
-
----
-
-## Key Takeaways
-
-- Centralized logging is essential for understanding AWS account activity.
-- CloudTrail provides a reliable source of API-level events.
-- AWS Config enables visibility into configuration changes over time.
-- CloudWatch converts logs into actionable operational signals.
-- Athena allows flexible, ad-hoc analysis of logs stored in S3.
-- Observability pipelines require deliberate teardown to control cost.
-  
----
-
-## Relevance to Cloud & Platform Engineering
-
-This project reflects real-world platform responsibilities:
-- Centralized logging and auditability.
-- Configuration visibility and drift detection.
-- Metric-based alerting and monitoring.
-- Log analysis using managed AWS services.
-- Operational lifecycle management.
+### Analytics Layer
+- Athena Workgroup with enforced configuration
+- Glue Data Catalog integration
+- External table for CloudTrail querying
 
 ---
 
-## References
+## Design Principles
 
-- [AWS CloudTrail Documentation](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)
-- [AWS GuardDuty Documentation](https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html)
-- [AWS Config Documentation](https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html)
-- [AWS CloudWatch Documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)
-- [AWS Athena Documentation](https://docs.aws.amazon.com/athena/latest/ug/what-is.html)
+- Modular Terraform architecture
+- Clear separation between reusable modules and environment wiring
+- KMS encryption enforced across storage components
+- No hardcoded ARNs or account IDs
+- Centralized tagging strategy
+- Cost-aware log lifecycle management
+- Explicit IAM role boundaries
 
 ---
 
-## Contact
+## Repository Structure
 
-Maintained by Sebastian Silva C. – Berlin, Germany  
-LinkedIn: https://www.linkedin.com/in/sebastiansilc 
+```
+modules/
+├── kms/
+├── logging_bucket/
+├── cloudtrail/
+├── config/
+├── guardduty/
+├── cloudwatch_alerts/
+└── athena/
+environments/
+└── prod/
+├── providers.tf
+├── variables.tf
+├── terraform.tfvars
+├── main.tf
+└── outputs.tf
+```
+
+Modules remain reusable and environment-agnostic.  
+The `prod` environment wires all components together into a deployable stack.
+
+---
+
+## Security Hardening Highlights
+
+- KMS key rotation enabled
+- Explicit S3 bucket policy allowing only the CloudTrail service principal
+- S3 public access block enforced
+- Log lifecycle policy (90 days → Glacier, 365-day expiration)
+- CloudTrail log file validation enabled
+- Dedicated IAM role for CloudTrail → CloudWatch integration
+- SNS-based alerting for critical security events
+- No wildcard permissions in custom IAM policies
+
+---
+
+## Deployment
+
+```bash
+cd environments/prod
+terraform init
+terraform plan
+terraform apply
+```
+
+---
+
+## What This Demonstrates
+
+This project reflects production-focused cloud engineering capabilities:
+- Governance architecture design
+- Detection engineering integration
+- Secure logging pipeline implementation
+- Infrastructure modularization
+- IAM boundary awareness
+- Operational cost considerations
+- Platform-level observability design
+
+It is structured to align with responsibilities typical of Cloud Engineer, Platform Engineer, or Junior SRE roles.
+
+---
+
+## Potential Extensions
+
+- Organization-wide CloudTrail and GuardDuty integration
+- Object Lock for compliance-grade immutability
+- Additional AWS Config managed or custom rules
+- Athena partition optimization for performance
+- Slack or PagerDuty alert integration
+- Multi-account governance expansion
+
+---
+
+## Author
+
+Sebastian Silva C. - Cloud Engineer – Secure Infrastructure & Automation - Berlin, Germany
