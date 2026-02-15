@@ -17,6 +17,16 @@ module "logging_bucket" {
 
 data "aws_caller_identity" "current" {}
 
+module "cloudwatch_alerts" {
+  source = "../../modules/cloudwatch_alerts"
+
+  name           = var.project_name
+  log_group_name = "/aws/cloudtrail/${var.project_name}"
+  alarm_email    = var.alarm_email
+
+  tags = var.tags
+}
+
 module "cloudtrail" {
   source = "../../modules/cloudtrail"
 
@@ -40,16 +50,6 @@ module "config" {
 
 module "guardduty" {
   source = "../../modules/guardduty"
-
-  tags = var.tags
-}
-
-module "cloudwatch_alerts" {
-  source = "../../modules/cloudwatch_alerts"
-
-  name           = var.project_name
-  log_group_name = "/aws/cloudtrail/${var.project_name}"
-  alarm_email    = var.alarm_email
 
   tags = var.tags
 }
